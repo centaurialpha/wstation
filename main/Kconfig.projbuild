@@ -1,0 +1,23 @@
+menu "Config Weather"
+
+    config WEATHER_WIFI_SSID
+        string "WiFi SSID"
+        default ""
+        help
+            SSID (network name) for the example to connect to.
+
+    config WEATHER_WIFI_PASS
+        string "WiFi Password"
+        default ""
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    config WEATHER_URL
+        string "URL"
+	default ""
+
+    config WEATHER_HOST
+        string "Host"
+	default ""
+endmenu
+
