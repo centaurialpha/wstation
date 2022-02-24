@@ -30,7 +30,7 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
         ESP_LOGI("WIFI", "STA_START");
         esp_wifi_connect();
     } else if( event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED ){
-        ESP_LOGE("WIFI", "attemping...");
+        ESP_LOGV("WIFI", "Disconnected, attemping...");
         esp_wifi_connect();
     } else if( event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP ) {
         ESP_LOGI("WIFI", "GOT IP");
@@ -145,22 +145,28 @@ esp_err_t send_post(char *data_buf)
 
 void publish_data(void *args)
 {
-    int16_t temperature_C = 0;
+    int16_t temp_C = 0;
     int16_t humidity = 0;
-    char data_buf[40];
+    uint8_t sensor_state = 1;
+
+    char data_buf[60];
 
 
     while( 1 )
     {
-        if( dht_read_data(sensor_type, dht_gpio, &humidity, &temperature_C) == ESP_OK )
+        if( dht_read_data(sensor_type, dht_gpio, &humidity, &temp_C) == ESP_OK )
         {
-            printf("Temp: %dC - Hum: %d%%\n", temperature_C / 10, humidity / 10);
-            sprintf(data_buf, "{\"temp_c\": %d, \"humidity\": %d}", temperature_C / 10, humidity / 10);
-            ESP_ERROR_CHECK(send_post(data_buf));
+            temp_C /= 10;
+            humidity /= 10;
+            sensor_state = 1;
 
         } else {
             printf("ERROR\n");
+            sensor_state = 0;
         }
+        sprintf(data_buf, "{\"tempc\":%d,\"humidity\":%d,\"s_state\":%d}", temp_C, humidity, sensor_state);
+        ESP_ERROR_CHECK(send_post(data_buf));
+
         vTaskDelay((PUSH_DATA_PERIOD_S * 1000) / portTICK_PERIOD_MS);
     }
 
