@@ -19,7 +19,12 @@ menu "Config Weather"
     config WEATHER_HOST
         string "Host"
 	default ""
-    config WEATHER_PERIOD_S
+
+    config DHT_INTERVAL
+        int "Push push"
+	default 30
+
+    config BMP_INTERVAL
         int "Push push"
 	default 30
 endmenu
