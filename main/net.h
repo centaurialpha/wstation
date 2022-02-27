@@ -1,6 +1,10 @@
-#ifndef _NET_H
-#define _NET_H
+#ifndef _H_NET
+#define _H_NET
 
-void wifi_start();
+#include "esp_err.h"
+
+void connect_wifi( void );
+void disconnect_wifi( void );
 esp_err_t send_post(char *);
+
 #endif

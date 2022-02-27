@@ -1,102 +1,73 @@
-#include <string.h>
 #include <stdio.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <driver/gpio.h>
 
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_sleep.h"
 
 #include "sensor.h"
 #include "net.h"
 
-#define PUSH_DATA_DHT_PERIOD_S CONFIG_DHT_INTERVAL
-#define PUSH_DATA_BMP_PERIOD_S CONFIG_BMP_INTERVAL
+#define TAG "WSTATION"
 
-void configure_led()
-{
-    gpio_config_t gpio_cfg;
-    gpio_cfg.pin_bit_mask = (1ULL << 2);
-    gpio_cfg.mode = GPIO_MODE_OUTPUT;
-    gpio_cfg.pull_down_en = 0;
-    gpio_cfg.pull_up_en = 0;
-    gpio_cfg.intr_type = GPIO_INTR_DISABLE;
-    gpio_config(&gpio_cfg);
-}
-
-void blink(void *args)
-{
-
-    configure_led();
-
-    while( 1 )
-    {
-        gpio_set_level(2, 0);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        gpio_set_level(2, 1);
-        vTaskDelay(60000 / portTICK_PERIOD_MS);
-    }
-}
-
-void publish_data_bmp180(void *args)
-{
-    bmp_data_t data = {0};
-    char data_buf[80];
-
-    ESP_ERROR_CHECK(bmp_init());
-
-    while (1)
-    {
-        if( get_bmp_sensor_data(&data) != ESP_OK)
-        {
-            printf("Error reading sensor...\n");
-        }
-        printf("%f C - %f F - %dHPa State %d\n", data.temperature_C, data.temperature_F, data.pressure, data.state);
-        sprintf(data_buf,
-                "{\"tempf\":%f,\"tempc\":%f,\"pressure\":%d,\"s_state\":%d}",
-                data.temperature_F,
-                data.temperature_C,
-                data.pressure,
-                data.state);
-        ESP_ERROR_CHECK(send_post(data_buf));
-
-        vTaskDelay((PUSH_DATA_BMP_PERIOD_S * 1000) / portTICK_PERIOD_MS);
-    }
-}
+RTC_DATA_ATTR static int boot_count = 0;
 
 void publish_data(void *args)
 {
-    dht_data_t data = {0};
 
+    dht_data_t dht_data = {0};
+    bmp_data_t bmp_data = {0};
     char data_buf[80];
+    char data_buf_2[80];
 
+    ESP_ERROR_CHECK(bmp_init());
 
-    while( 1 )
+    // DHT Sensor
+    if( get_dht_sensor_data(&dht_data) != ESP_OK )
     {
-        if( get_dht_sensor_data(&data) != ESP_OK )
-        {
-            printf("Error reading sensor..\n");
-        }
-        printf("%f C - %f F - %f H STATE %d\n", data.temperature_C, data.temperature_F, data.humidity, data.state);
-        sprintf(data_buf,
-                "{\"tempf\":%f,\"tempc\":%f,\"humidity\":%f,\"s_state\":%d}",
-                data.temperature_F,
-                data.temperature_C,
-                data.humidity,
-                data.state);
-        ESP_ERROR_CHECK(send_post(data_buf));
-
-        vTaskDelay((PUSH_DATA_DHT_PERIOD_S * 1000) / portTICK_PERIOD_MS);
+        printf("Error reading sensor..\n");
     }
+    printf("%f C - %f F - %f H STATE %d\n", dht_data.temperature_C, dht_data.temperature_F, dht_data.humidity, dht_data.state);
+    sprintf(data_buf,
+            "{\"tempf\":%f,\"tempc\":%f,\"humidity\":%f,\"s_state\":%d}",
+            dht_data.temperature_F,
+            dht_data.temperature_C,
+            dht_data.humidity,
+            dht_data.state);
+    printf("%s\n", data_buf);
+    ESP_ERROR_CHECK(send_post(data_buf));
 
+    // BMP Sensor
+    if( get_bmp_sensor_data(&bmp_data) != ESP_OK)
+    {
+        printf("Error reading sensor...\n");
+    }
+    printf("%f C - %f F - %dHPa State %d\n", bmp_data.temperature_C, bmp_data.temperature_F, bmp_data.pressure, bmp_data.state);
+    sprintf(data_buf_2,
+            "{\"tempf\":%f,\"tempc\":%f,\"pressure\":%d,\"s_state\":%d}",
+            bmp_data.temperature_F,
+            bmp_data.temperature_C,
+            bmp_data.pressure,
+            bmp_data.state);
+    ESP_ERROR_CHECK(send_post(data_buf_2));
+
+    disconnect_wifi();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    const int deep_sleep_secs = 1800;
+    ESP_LOGI(TAG, "Entering deep sleep for %d seconds", deep_sleep_secs);
+    esp_deep_sleep(1e6 * deep_sleep_secs);
 }
 
 void app_main()
 {
-    ESP_ERROR_CHECK(i2cdev_init());
-    wifi_start();
+    boot_count += 1;
+    ESP_LOGI(TAG, "Boot count: %d", boot_count);
 
-    xTaskCreate(blink, "BLINK", 2048, NULL, 1, NULL);
-    xTaskCreate(publish_data, "PUBLISHER", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
-    xTaskCreate(publish_data_bmp180, "PUBLISHER 2", 4096, NULL, 6, NULL);
+    ESP_ERROR_CHECK(i2cdev_init());
+    connect_wifi();
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+    xTaskCreate(publish_data, "Publisher", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
 }

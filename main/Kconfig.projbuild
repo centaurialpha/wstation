@@ -1,31 +1,22 @@
-menu "Config Weather"
+menu "Config Weather Station"
 
-    config WEATHER_WIFI_SSID
-        string "WiFi SSID"
-        default ""
+    config STATION_WIFI_SSID
+        string "Wi-Fi SSID"
+	default ""
         help
             SSID (network name) for the example to connect to.
 
-    config WEATHER_WIFI_PASS
-        string "WiFi Password"
-        default ""
+    config STATION_WIFI_PASSWORD
+        string "Wi-Fi Password"
+	default ""
         help
             WiFi password (WPA or WPA2) for the example to use.
 
-    config WEATHER_URL
+    config STATION_URL
         string "URL"
 	default ""
 
-    config WEATHER_HOST
+    config STATION_HOST
         string "Host"
 	default ""
-
-    config DHT_INTERVAL
-        int "Push push"
-	default 30
-
-    config BMP_INTERVAL
-        int "Push push"
-	default 30
 endmenu
-

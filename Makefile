@@ -1,4 +1,4 @@
-PROJECT_NAME := weather-station
+PROJECT_NAME := wstation
 
 EXTRA_COMPONENT_DIRS := /home/gabox/projects/esp/components
 # EXCLUDE_COMPONENTS := led_strip ls7366r

@@ -21,6 +21,7 @@ esp_err_t get_dht_sensor_data(dht_data_t *data)
     } else {
         data->temperature_C = .0;
         data->temperature_F = .0;
+        data->humidity = 0;
         data->state = 0;
     }
     return err;
