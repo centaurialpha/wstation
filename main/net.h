@@ -5,6 +5,7 @@
 
 void connect_wifi( void );
 void disconnect_wifi( void );
-esp_err_t send_post(char *);
+//esp_err_t send_post(char *);
+//void mqtt_start( void );
 
 #endif

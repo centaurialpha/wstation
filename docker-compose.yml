@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  influxdb:
+    image: influxdb:1.8.10  # supported for my RPi2
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    networks:
+      wstation_network:
+    environment:
+      INFLUXDB_DB: "weather"
+      INFLUXDB_BIND_ADDRESS: "0.0.0.0:8083"
+      INFLUXDB_REPORTING_DISABLED: true
+    volumes:
+      - influx-storage:/var/lib/influxdb
+      - ./influxdb.conf:/etc/influxdb/influxdb.conf:ro
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      wstation_network:
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana-provisioning/:/etc/grafana/provisioning
+    depends_on:
+      - influx
+
+  broker:
+    image: eclipse-mosquitto
+    networks:
+      wstation_network:
+    container_name: broker
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  listener:
+    build:
+      context: .
+      dockerfile: Dockerfile-listener
+    container_name: listener
+    environment:
+      PYTHONUNBUFFERED: 1
+    networks:
+      wstation_network:
+    depends_on:
+      - broker
+
+volumes:
+  grafana-storage:
+  influx-storage:
+
+networks:
+  wstation_network:
+    driver: bridge

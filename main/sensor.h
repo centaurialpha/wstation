@@ -7,16 +7,14 @@
 typedef struct dht_data_sensor_t
 {
     float humidity;
-    float temperature_C;
-    float temperature_F;
+    float temperature;
     uint8_t state;
 
 } dht_data_t;
 
 typedef struct bmp_data_sensor_t
 {
-    float temperature_C;
-    float temperature_F;
+    float temperature;
     uint32_t pressure;
     uint8_t state;
 

@@ -1,16 +1,13 @@
 #include <string.h>
 #include "esp_netif.h"
 #include "esp_wifi.h"
-#include "esp_http_client.h"
+//#include "esp_http_client.h"
 #include "freertos/event_groups.h"
 #include "esp_log.h"
 #include "net.h"
 
-#define WIFI_SSID       CONFIG_STATION_WIFI_SSID
-#define WIFI_PASSWORD   CONFIG_STATION_WIFI_PASSWORD
-
-#define HTTP_URL    CONFIG_STATION_URL
-#define HTTP_HOST   CONFIG_STATION_HOST
+#define WIFI_SSID       CONFIG_WIFI_SSID
+#define WIFI_PASSWORD   CONFIG_WIFI_PASSWORD
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -92,36 +89,37 @@ void connect_wifi( void )
     }
 }
 
-esp_err_t send_post(char *data)
-{
-    esp_err_t ret_val = ESP_OK;
+//esp_err_t send_post(char *data)
+//{
+//    esp_err_t ret_val = ESP_OK;
+//
+//    esp_http_client_config_t cfg = {
+//        .url = HTTP_URL,
+//        .port = 8000,
+//        .host = HTTP_HOST,
+//        .method = HTTP_METHOD_POST,
+//        .transport_type = HTTP_TRANSPORT_OVER_TCP,
+//    };
+//
+//    esp_http_client_handle_t client = esp_http_client_init(&cfg);
+//    esp_http_client_set_header(client, "Content-Type", "application/json");
+//
+//    esp_err_t err_post = esp_http_client_set_post_field(client, data, strlen(data));
+//    ESP_ERROR_CHECK(err_post);
+//
+//    esp_err_t err = esp_http_client_perform(client);
+//
+//    if( err == ESP_OK )
+//    {
+//        ESP_LOGI(TAG, "OK!");
+//    } else {
+//        ESP_LOGE(TAG, "Noooo: %s", esp_err_to_name(err));
+//        ret_val = ESP_FAIL;
+//    }
+//
+//    esp_http_client_close(client);
+//    esp_http_client_cleanup(client);
+//
+//    return ret_val;
+//}
 
-    esp_http_client_config_t cfg = {
-        .url = HTTP_URL,
-        .port = 8000,
-        .host = HTTP_HOST,
-        .method = HTTP_METHOD_POST,
-        .transport_type = HTTP_TRANSPORT_OVER_TCP,
-    };
-
-    esp_http_client_handle_t client = esp_http_client_init(&cfg);
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-
-    esp_err_t err_post = esp_http_client_set_post_field(client, data, strlen(data));
-    ESP_ERROR_CHECK(err_post);
-
-    esp_err_t err = esp_http_client_perform(client);
-
-    if( err == ESP_OK )
-    {
-        ESP_LOGI(TAG, "OK!");
-    } else {
-        ESP_LOGE(TAG, "Noooo: %s", esp_err_to_name(err));
-        ret_val = ESP_FAIL;
-    }
-
-    esp_http_client_close(client);
-    esp_http_client_cleanup(client);
-
-    return ret_val;
-}

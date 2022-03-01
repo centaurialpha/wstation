@@ -1,22 +1,31 @@
-menu "Config Weather Station"
+menu "Weather Station"
 
-    config STATION_WIFI_SSID
+    config WIFI_SSID
         string "Wi-Fi SSID"
 	default ""
         help
             SSID (network name) for the example to connect to.
 
-    config STATION_WIFI_PASSWORD
+    config WIFI_PASSWORD
         string "Wi-Fi Password"
 	default ""
         help
             WiFi password (WPA or WPA2) for the example to use.
 
-    config STATION_URL
-        string "URL"
+    config MQTT_BROKER
+        string "Broker URL"
 	default ""
+	help
+	    URL of the broker to connect to
 
-    config STATION_HOST
-        string "Host"
-	default ""
+    config PUBLISH_DHT_DATA
+        bool "Publish DHT11 sensor data"
+	default y
+
+    config PUBLISH_BMP_DATA
+        bool "Publish BMP180 sensor data"
+	default y
+    config DEEP_SLEEP_WAKE_UP_SECS
+        int "Deep Sleep"
+	default 1800
 endmenu

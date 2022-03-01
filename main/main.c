@@ -2,62 +2,118 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_sleep.h"
+#include "mqtt_client.h"
 
 #include "sensor.h"
 #include "net.h"
 
 #define TAG "WSTATION"
 
+#define MQTT_BROKER     CONFIG_MQTT_BROKER
+
 RTC_DATA_ATTR static int boot_count = 0;
 
-void publish_data(void *args)
+void publish_dht_data(esp_mqtt_client_handle_t client)
 {
+    dht_data_t data = {0};
+    char temp[20];
+    char humidity[20];
+    char state[20];
 
-    dht_data_t dht_data = {0};
-    bmp_data_t bmp_data = {0};
-    char data_buf[80];
-    char data_buf_2[80];
-
-    ESP_ERROR_CHECK(bmp_init());
-
-    // DHT Sensor
-    if( get_dht_sensor_data(&dht_data) != ESP_OK )
+    if( get_dht_sensor_data(&data) != ESP_OK )
     {
         printf("Error reading sensor..\n");
     }
-    printf("%f C - %f F - %f H STATE %d\n", dht_data.temperature_C, dht_data.temperature_F, dht_data.humidity, dht_data.state);
-    sprintf(data_buf,
-            "{\"tempf\":%f,\"tempc\":%f,\"humidity\":%f,\"s_state\":%d}",
-            dht_data.temperature_F,
-            dht_data.temperature_C,
-            dht_data.humidity,
-            dht_data.state);
-    printf("%s\n", data_buf);
-    ESP_ERROR_CHECK(send_post(data_buf));
 
-    // BMP Sensor
-    if( get_bmp_sensor_data(&bmp_data) != ESP_OK)
+    sprintf(temp, "%f,dht", data.temperature);
+    sprintf(humidity, "%f,dht", data.humidity);
+    sprintf(state, "%d,dht", data.state);
+
+    esp_mqtt_client_publish(client, "home/temp", temp, 0, 1, 0);
+    esp_mqtt_client_publish(client, "home/humidity", humidity, 0, 1, 0);
+    esp_mqtt_client_publish(client, "home/state", state, 0, 1, 0);
+}
+
+void publish_bmp_data(esp_mqtt_client_handle_t client)
+{
+
+    bmp_data_t data = {0};
+    char temp[20];
+    char pressure[20];
+    char state[20];
+
+    ESP_ERROR_CHECK(bmp_init());
+
+    if( get_bmp_sensor_data(&data) != ESP_OK )
     {
-        printf("Error reading sensor...\n");
+        printf("Error reading sensor..\n");
     }
-    printf("%f C - %f F - %dHPa State %d\n", bmp_data.temperature_C, bmp_data.temperature_F, bmp_data.pressure, bmp_data.state);
-    sprintf(data_buf_2,
-            "{\"tempf\":%f,\"tempc\":%f,\"pressure\":%d,\"s_state\":%d}",
-            bmp_data.temperature_F,
-            bmp_data.temperature_C,
-            bmp_data.pressure,
-            bmp_data.state);
-    ESP_ERROR_CHECK(send_post(data_buf_2));
 
-    disconnect_wifi();
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    sprintf(temp, "%f,bmp", data.temperature);
+    sprintf(pressure, "%d,bmp", data.pressure);
+    sprintf(state, "%d,bmp", data.state);
 
-    const int deep_sleep_secs = 1800;
-    ESP_LOGI(TAG, "Entering deep sleep for %d seconds", deep_sleep_secs);
-    esp_deep_sleep(1e6 * deep_sleep_secs);
+    esp_mqtt_client_publish(client, "home/temp", temp, 0, 1, 0);
+    esp_mqtt_client_publish(client, "home/pressure", pressure, 0, 1, 0);
+    esp_mqtt_client_publish(client, "home/state", state, 0, 1, 0);
+}
+
+static void mqtt_event_handler(void *args, esp_event_base_t base, int32_t event_id, void *data)
+{
+    esp_mqtt_event_handle_t event = data;
+    esp_mqtt_client_handle_t client = event->client;
+    int msg_id;
+
+    switch( (esp_mqtt_event_id_t)event_id )
+    {
+        case MQTT_EVENT_CONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+#ifdef CONFIG_PUBLISH_DHT_DATA
+            publish_dht_data(client);
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+#endif
+#ifdef CONFIG_PUBLISH_BMP_DATA
+            publish_bmp_data(client);
+#endif
+            esp_mqtt_client_disconnect(client);
+            disconnect_wifi();
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+            ESP_LOGI(TAG, "Entering deep sleep for %d seconds", CONFIG_DEEP_SLEEP_WAKE_UP_SECS);
+            esp_deep_sleep(1e6 * CONFIG_DEEP_SLEEP_WAKE_UP_SECS);
+            break;
+        case MQTT_EVENT_DISCONNECTED:
+            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            break;
+
+        case MQTT_EVENT_SUBSCRIBED:
+            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+            break;
+        case MQTT_EVENT_UNSUBSCRIBED:
+            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
+            break;
+        case MQTT_EVENT_PUBLISHED:
+            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+            break;
+        default:
+            ESP_LOGI(TAG, "Other event id: %d", event->event_id);
+            break;
+    }
+}
+
+void start_mqtt()
+{
+    esp_mqtt_client_config_t cfg = {
+        .uri = CONFIG_MQTT_BROKER,
+    };
+
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&cfg);
+    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
+    esp_mqtt_client_start(client);
 }
 
 void app_main()
@@ -68,6 +124,5 @@ void app_main()
     ESP_ERROR_CHECK(i2cdev_init());
     connect_wifi();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-    xTaskCreate(publish_data, "Publisher", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
+    start_mqtt();
 }
