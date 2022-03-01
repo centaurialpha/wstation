@@ -14,7 +14,7 @@ services:
       INFLUXDB_REPORTING_DISABLED: true
     volumes:
       - influx-storage:/var/lib/influxdb
-      - ./influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - ./conf/influxdb.conf:/etc/influxdb/influxdb.conf:ro
 
   grafana:
     image: grafana/grafana
@@ -38,12 +38,11 @@ services:
       - 1883:1883
       - 9001:9001
     volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./conf/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
 
   listener:
     build:
       context: .
-      dockerfile: Dockerfile-listener
     container_name: listener
     environment:
       PYTHONUNBUFFERED: 1
