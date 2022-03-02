@@ -343,7 +343,7 @@
             {
               "key": "sensor",
               "operator": "=",
-              "value": "dht"
+              "value": "bmp"
             }
           ]
         }
@@ -688,6 +688,6 @@
   "timezone": "",
   "title": "W Station",
   "uid": "TetSYMkgz",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
