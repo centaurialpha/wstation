@@ -92,7 +92,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "temp",
+          "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
           "refId": "A",
@@ -110,117 +110,10 @@
                 "type": "last"
               }
             ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "bmp"
-            }
           ]
         }
       ],
-      "title": "Temperature BMP Sensor",
-      "type": "stat"
-    },
-    {
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "continuous-GrYlRd"
-          },
-          "decimals": 1,
-          "mappings": [],
-          "max": 50,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "celsius"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 5,
-        "x": 5,
-        "y": 0
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "pluginVersion": "8.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P951FEA4DE68E13C5"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "temp",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "dht"
-            }
-          ]
-        }
-      ],
-      "title": "Temperature DHT Sensor",
+      "title": "Temperature",
       "type": "stat"
     },
     {
@@ -281,7 +174,7 @@
       "gridPos": {
         "h": 7,
         "w": 14,
-        "x": 10,
+        "x": 5,
         "y": 0
       },
       "id": 2,
@@ -318,7 +211,7 @@
             }
           ],
           "hide": false,
-          "measurement": "temp",
+          "measurement": "temperature",
           "orderByTime": "ASC",
           "policy": "default",
           "query": "SELECT last(\"value\") FROM \"temp\" WHERE (\"sensor\" = 'dht') AND $timeFilter GROUP BY time($__interval) fill(none)",
@@ -338,13 +231,6 @@
                 "type": "last"
               }
             ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "bmp"
-            }
           ]
         }
       ],
@@ -376,10 +262,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 14,
         "w": 5,
-        "x": 0,
-        "y": 7
+        "x": 19,
+        "y": 0
       },
       "id": 10,
       "options": {
@@ -435,13 +321,6 @@
                 "type": "last"
               }
             ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "bmp"
-            }
           ]
         }
       ],
@@ -478,7 +357,7 @@
       "gridPos": {
         "h": 7,
         "w": 5,
-        "x": 5,
+        "x": 0,
         "y": 7
       },
       "id": 8,
@@ -535,13 +414,6 @@
                 "type": "last"
               }
             ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "dht"
-            }
           ]
         }
       ],
@@ -606,7 +478,7 @@
       "gridPos": {
         "h": 7,
         "w": 14,
-        "x": 10,
+        "x": 5,
         "y": 7
       },
       "id": 6,
@@ -659,13 +531,6 @@
                 "type": "last"
               }
             ]
-          ],
-          "tags": [
-            {
-              "key": "sensor",
-              "operator": "=",
-              "value": "dht"
-            }
           ]
         }
       ],
@@ -673,7 +538,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": false,
+  "refresh": "5m",
   "schemaVersion": 35,
   "style": "dark",
   "tags": [],
@@ -681,13 +546,13 @@
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "W Station",
   "uid": "TetSYMkgz",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }

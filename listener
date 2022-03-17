@@ -15,9 +15,10 @@ influx_client = InfluxDBClient('influxdb', 8086, database="weather")
 
 
 def on_connect(client, userdata, flags, rc):
+    logger.info("Subscribing...")
     client.subscribe(
         [
-            ("/home/metrics", 0),
+            ("home/metrics", 0),
             # ("home/temp", 0),
             # ("home/humidity", 0),
             # ("home/pressure", 0),
@@ -57,6 +58,7 @@ def on_message(client, userdata, message):
 
 
 def main():
+    logger.info("CONNECTING...")
     mqtt = client.Client()
     mqtt.on_connect = on_connect
     mqtt.on_message = on_message
