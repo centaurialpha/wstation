@@ -251,7 +251,7 @@
             "scaleDistribution": {
               "type": "linear"
             },
-            "showPoints": "always",
+            "showPoints": "auto",
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -688,6 +688,6 @@
   "timezone": "",
   "title": "W Station",
   "uid": "TetSYMkgz",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }

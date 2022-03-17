@@ -17,23 +17,39 @@ influx_client = InfluxDBClient('influxdb', 8086, database="weather")
 def on_connect(client, userdata, flags, rc):
     client.subscribe(
         [
-            ("home/temp", 0),
-            ("home/humidity", 0),
-            ("home/pressure", 0),
+            ("/home/metrics", 0),
+            # ("home/temp", 0),
+            # ("home/humidity", 0),
+            # ("home/pressure", 0),
         ]
     )
 
 
 def on_message(client, userdata, message):
-    data, sensor = message.payload.decode().split(",")
-    payload = ast.literal_eval(data)
-    logger.info("%s=%s from sensor=%s", message.topic, payload, sensor)
+    payload = message.payload.decode()
+    logger.info("Payload: %s=%s", message.topic, payload)
+
+    temperature, humidity, pressure = payload.split(",")
+
+    temperature = ast.literal_eval(temperature)
+    humidity = ast.literal_eval(humidity)
+    pressure = ast.literal_eval(pressure)
 
     json_body = [
         dict(
-            measurement=message.topic.split("/")[-1],
-            tags={"sensor": sensor},
-            fields={"value": payload}
+            measurement="temperature",
+            tags={},
+            fields={"value": temperature}
+        ),
+        dict(
+            measurement="humidity",
+            tags={},
+            fields={"value": humidity}
+        ),
+        dict(
+            measurement="pressure",
+            tags={},
+            fields={"value": pressure}
         )
     ]
 

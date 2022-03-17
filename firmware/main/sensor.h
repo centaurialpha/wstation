@@ -4,24 +4,8 @@
 #include <dht.h>
 #include <bmp180.h>
 
-typedef struct dht_data_sensor_t
-{
-    float humidity;
-    float temperature;
-    uint8_t state;
-
-} dht_data_t;
-
-typedef struct bmp_data_sensor_t
-{
-    float temperature;
-    uint32_t pressure;
-    uint8_t state;
-
-} bmp_data_t;
-
-esp_err_t bmp_init();
-esp_err_t get_dht_sensor_data(dht_data_t*);
-esp_err_t get_bmp_sensor_data(bmp_data_t*);
+void collect_data( void *pvParameters );
+void collect_dht_data( float *temperature, float *humidity );
+void collect_bmp_data( float *temperature, uint32_t *pressure );
 
 #endif
